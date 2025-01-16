@@ -1,0 +1,128 @@
+
+
+-----Training Logistic Regression -----
+Validation Results for Logistic Regression:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      1.00      1.00      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      1.00      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16823     1]
+ [    1  3913]]
+
+
+-----Training Random Forest -----
+Validation Results for Random Forest:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      1.00      1.00      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      1.00      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16824     0]
+ [    1  3913]]
+
+
+-----Training Naive Bayes -----
+Validation Results for Naive Bayes:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      0.99      0.99      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      0.99      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16824     0]
+ [   54  3860]]
+
+
+-----Training SVM -----
+Validation Results for SVM:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      1.00      1.00      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      1.00      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16823     1]
+ [    2  3912]]
+
+
+-----Training Decision Tree -----
+Validation Results for Decision Tree:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      1.00      1.00      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      1.00      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16824     0]
+ [    1  3913]]
+
+
+-----Training KNN -----
+Validation Results for KNN:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      0.99      0.99      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      0.99      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16820     4]
+ [   43  3871]]
+
+
+-----Training MLP -----
+Validation Results for MLP:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      1.00      1.00      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      1.00      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16824     0]
+ [    0  3914]]
+
+
+-----Training AdaBoost -----
+Validation Results for AdaBoost:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     16824
+           1       1.00      1.00      1.00      3914
+
+    accuracy                           1.00     20738
+   macro avg       1.00      1.00      1.00     20738
+weighted avg       1.00      1.00      1.00     20738
+
+Confusion Matrix for {name}: 
+[[16823     1]
+ [    1  3913]]
