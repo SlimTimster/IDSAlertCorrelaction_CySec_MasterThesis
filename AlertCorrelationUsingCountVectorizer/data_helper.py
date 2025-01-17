@@ -22,7 +22,7 @@ def load_true_labels(true_labels_path):
 # Add Labels and true_type to dataset
 # true_type = 1 for attack, 0 for benign
 # labels = list of attack categories for each attack
-def add_true_labels_to_dataset(df_log_data, df_true_labels):
+def add_binary_true_labels_to_dataset(df_log_data, df_true_labels):
     for index, row in df_true_labels.iterrows():
         line = row['line']
         labels = row['labels']
@@ -32,3 +32,14 @@ def add_true_labels_to_dataset(df_log_data, df_true_labels):
     # Add true_type = 0 for benign
     df_log_data['true_type'] = df_log_data['true_type'].replace("n", "0")
     return df_log_data
+
+
+# Add labels to dataset
+def add_labels_to_dataset(df_log_data, df_true_labels):
+    for index, row in df_true_labels.iterrows():
+        line = row['line']
+        labels = row['labels']
+        df_log_data.loc[line-1, 'labels'] = str(labels)
+        print("Line: ", line, " Labels: ", labels)
+
+    return df_log
