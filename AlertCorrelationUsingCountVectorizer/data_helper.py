@@ -36,10 +36,13 @@ def add_binary_true_labels_to_dataset(df_log_data, df_true_labels):
 
 # Add labels to dataset
 def add_labels_to_dataset(df_log_data, df_true_labels):
-    for index, row in df_true_labels.iterrows():
+    for _, row in df_true_labels.iterrows():
         line = row['line']
         labels = row['labels']
         df_log_data.loc[line-1, 'labels'] = str(labels)
-        print("Line: ", line, " Labels: ", labels)
+        #print("Line: ", line, " Labels: ", labels)
 
-    return df_log
+    # Add binary true_type as well
+    df_log_data['true_type'] = df_log_data['labels'].notna().astype(int)
+
+    return df_log_data
