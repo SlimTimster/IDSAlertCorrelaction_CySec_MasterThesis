@@ -46,3 +46,256 @@ def add_labels_to_dataset(df_log_data, df_true_labels):
     df_log_data['true_type'] = df_log_data['labels'].notna().astype(int)
 
     return df_log_data
+
+
+# Parse the log lines and match them to their message type using manually defined regular expressions
+def parse_log(log_lines):
+    import re
+    import pandas as pd
+
+    data = []
+    # Regular expressions for each type of log line
+    # Query patterns
+    query_a_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: query\[A\] '
+        r'(?P<domain>[^\s]+) '
+        r'from (?P<src_ip>[^\s]+)'
+    )
+    query_aaaa_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: query\[AAAA\] '
+        r'(?P<domain>[^\s]+) '
+        r'from (?P<src_ip>[^\s]+)'
+    )
+    query_srv_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: query\[SRV\] '
+        r'(?P<domain>[^\s]+) '
+        r'from (?P<src_ip>[^\s]+)'
+    )
+    query_txt_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: query\[TXT\] '
+        r'(?P<domain>[^\s]+) '
+        r'from (?P<src_ip>[^\s]+)'
+    )
+    query_ptr_pattern = re.compile(
+    r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+    r'dnsmasq\[\d+\]: query\[PTR\] '
+    r'(?P<domain>[^\s]+) '
+    r'from (?P<src_ip>[^\s]+)$'
+    )
+    query_mx_pattern = re.compile(
+    r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+    r'dnsmasq\[\d+\]: query\[MX\] '
+    r'(?P<domain>[^\s]+) '
+    r'from (?P<src_ip>[^\s]+)$'
+    )
+    
+    # Forwarded pattern
+    forwarded_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: forwarded '
+        r'(?P<domain>[^\s]+) '
+        r'to (?P<dst_ip>[^\s]+)'
+    )
+
+    # Reply pattern
+    reply_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: reply '
+        r'(?P<domain>[^\s]+) '
+        r'is (?P<resolved_ip>[^\s]+)'
+    )
+
+    # Cached pattern
+    cached_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: cached '
+        r'(?P<domain>[^\s]+) '
+        r'is (?P<resolved_ip>[^\s]+)'
+    )
+
+    # Nameserver pattern
+    nameserver_pattern = re.compile(
+        r'^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) '
+        r'dnsmasq\[\d+\]: nameserver '
+        r'(?P<nameserver_ip>[^\s]+) '
+        r'refused to do a recursive query$'
+    )
+
+    # Loop over every line in the log file and match it to a pattern
+    for line in log_lines:
+        #Query
+        if match := query_a_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'query_a'
+            data.append(match_data)
+        elif match := query_aaaa_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'query_aaaa'
+            data.append(match_data)
+        elif match := query_srv_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'query_srv'
+            data.append(match_data)
+        elif match := query_txt_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'query_txt'
+            data.append(match_data)
+        elif match := query_ptr_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'query_ptr'
+            data.append(match_data)
+        elif match := query_mx_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'query_mx'
+            data.append(match_data)
+
+        #Forwarded
+        elif match := forwarded_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'forwarded'
+            data.append(match_data)
+        
+        #Reply
+        elif match := reply_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'reply'
+            data.append(match_data)
+        
+        #Cached
+        elif match := cached_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'cached'
+            data.append(match_data)
+
+        #Nameserver
+        elif match := nameserver_pattern.match(line):
+            match_data = match.groupdict()
+            match_data['message_type'] = 'nameserver'
+            data.append(match_data)
+
+        #Default
+        else:
+            print(f"Line does not match any pattern: {line}")
+
+    df = pd.DataFrame(data)
+    
+    # Convert timestamp to a datetime object
+    df['timestamp'] = pd.to_datetime('2022 ' + df['timestamp'], format='%Y %b %d %H:%M:%S', errors='coerce')
+    df["message_type"] = df["message_type"].astype(str)
+    
+    return df
+
+
+
+# ------------------------------------ Clustering of Events (dnsmasq) ------------------------------------
+
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+from datetime import datetime
+import seaborn as sns
+from sklearn.metrics.pairwise import cosine_similarity
+import json
+
+# Function to process the DataFrame
+def preprocess_data(attack_events):
+    # Convert list of dictionaries to DataFrame
+    df = pd.DataFrame(attack_events)
+    
+    # Convert timestamp to datetime if not already
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    
+    # Extract filename from domain (last part after the last dot)
+    df['filename'] = df['domain'].apply(lambda x: x.split('.')[-2] if isinstance(x, str) else None)
+    
+    return df
+
+# Approach 1: Domain-based clustering
+def cluster_by_domain_similarity(df):
+    # Create TF-IDF vectors from domains
+    vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(3, 5))
+    domain_vectors = vectorizer.fit_transform(df['domain'])
+    
+    # Apply DBSCAN clustering
+    clustering = DBSCAN(eps=0.1, min_samples=5, metric='cosine')
+    clusters = clustering.fit_predict(domain_vectors)
+    
+    return clusters
+
+# Approach 2: Time-aware clustering
+def cluster_with_time(df):
+    # Create feature matrix combining domain similarity and time
+    vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(3, 5))
+    domain_vectors = vectorizer.fit_transform(df['domain'])
+    
+    # Convert timestamps to numeric values (seconds since first event)
+    time_values = (df['timestamp'] - df['timestamp'].min()).dt.total_seconds()
+    time_values = time_values.values.reshape(-1, 1)
+    
+    # Scale time values
+    scaler = StandardScaler()
+    time_scaled = scaler.fit_transform(time_values)
+    
+    # Combine domain similarity with time
+    # Calculate pairwise similarities for domains
+    domain_similarities = cosine_similarity(domain_vectors)
+    
+    # Create combined distance matrix
+    n_samples = len(df)
+    combined_distances = np.zeros((n_samples, n_samples))
+    
+    # Weight for time component (adjust as needed)
+    time_weight = 0.3
+    
+    for i in range(n_samples):
+        for j in range(n_samples):
+            # Domain similarity component
+            domain_dist = 1 - domain_similarities[i, j]
+            # Time difference component
+            time_dist = abs(time_scaled[i] - time_scaled[j])
+            # Combine distances
+            combined_distances[i, j] = (1 - time_weight) * domain_dist + time_weight * time_dist
+    
+    # Apply DBSCAN on combined distances
+    clustering = DBSCAN(eps=0.15, min_samples=5, metric='precomputed')
+    clusters = clustering.fit_predict(combined_distances)
+    
+    return clusters
+
+# Function to analyze and visualize clusters
+def analyze_clusters(df, clusters, title):
+    df_with_clusters = df.copy()
+    df_with_clusters['cluster'] = clusters
+    
+    # Plot timeline of clusters
+    plt.figure(figsize=(15, 8))
+    plt.scatter(df_with_clusters['timestamp'], 
+               df_with_clusters['cluster'],
+               c=df_with_clusters['cluster'], 
+               cmap='viridis',
+               alpha=0.6)
+    plt.title(f'Cluster Timeline - {title}')
+    plt.xlabel('Time')
+    plt.ylabel('Cluster')
+    plt.colorbar(label='Cluster')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+    
+    # Print cluster statistics
+    print(f"\nCluster Statistics - {title}")
+    print("-" * 50)
+    cluster_stats = df_with_clusters.groupby('cluster').agg({
+        'timestamp': ['count', 'min', 'max'],
+        'filename': lambda x: len(set(x))
+    }).round(2)
+    print(cluster_stats)
+    
+    return df_with_clusters
