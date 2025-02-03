@@ -47,6 +47,39 @@ def add_labels_to_dataset(df_log_data, df_true_labels):
 
     return df_log_data
 
+# Splits the data into train, test and validation sets (70%, 20%, 10%)
+def split_data(x, y_multilabel):
+    from sklearn.model_selection import train_test_split
+
+    # Split into train, test and validation sets
+    # 70% train, 20% test, 10% validation #TODO: Calculate if this is correct
+    X_temp, X_test, y_temp, y_test = train_test_split(
+        x, y_multilabel, test_size=0.2, random_state=42, stratify=y_multilabel
+    )
+
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_temp, y_temp, test_size=0.125, random_state=42, stratify=y_temp
+    )
+
+    # How many per set
+    print("Training set size: ", len(X_train), " Test set size: ", len(X_test), " Validation set size: ", len(X_val))
+
+    # How many for each class:
+    print("\nClass distribution in training set:")
+    print(y_train.sum())
+
+    print("\nClass distribution in validation set:")
+    print(y_val.sum())
+
+    print("\nClass distribution in test set:")
+    print(y_test.sum())
+
+    return X_train, X_test, X_val, y_train, y_test, y_val
+
+
+# #################################################################################
+# ------------------------------------ DNSMASQ ------------------------------------
+# #################################################################################
 
 # Parse the log lines and match them to their message type using manually defined regular expressions
 def parse_log(log_lines):
