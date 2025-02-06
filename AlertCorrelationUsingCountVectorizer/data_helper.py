@@ -7,6 +7,67 @@ import json
 def load_data(data_path):
     return pd.read_csv(data_path, header=None)
 
+# Load dataset from a file and return it as a pandas dataframe taking into account , separated and space separated files
+def load_data_robust(file_path):
+    import re
+    """
+    Loads and processes log files in both comma-separated and space-separated formats.
+    
+    Args:
+        file_path (str): Path to the log file
+        
+    Returns:
+        pandas.DataFrame: Processed DataFrame with 'timestamp' and 'message' columns
+    """
+    # First, read the first line of the file to determine format
+    with open(file_path, 'r') as f:
+        first_line = f.readline().strip()
+    
+    # Check if the format uses commas
+    if ',' in first_line:
+        # Comma-separated format
+        df = pd.read_csv(file_path, header=None)
+        
+        # Extract timestamp from first column
+        df['timestamp'] = df[0].str.extract(r'(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})')
+        
+        # Combine remaining columns for message, skipping timestamp and server name
+        df['message'] = df[2]
+        
+    else:
+        # Space-separated format
+        # Read the entire file
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+        
+        # Process each line
+        timestamps = []
+        messages = []
+        
+        for line in lines:
+            # Extract timestamp and message using regex
+            timestamp_match = re.search(r'(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})', line)
+            if timestamp_match:
+                timestamps.append(timestamp_match.group(1))
+                # Get everything after "intranet-server"
+                message = re.search(r'\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\S+\s+(.*)$', line)
+                messages.append(message.group(1) if message else '')
+        
+        # Create DataFrame from processed lines
+        df = pd.DataFrame({
+            'timestamp': timestamps,
+            'message': messages
+        })
+    
+    # Clean up timestamp format (ensure single space between components)
+    df['timestamp'] = df['timestamp'].apply(lambda x: re.sub(r'\s+', ' ', x.strip()) if pd.notnull(x) else x)
+    
+    # Clean up message (remove any leading/trailing whitespace)
+    df['message'] = df['message'].str.strip()
+    
+    # Select and return only the needed columns
+    return df[['timestamp', 'message']].copy()
+
 # Load the true labels from a json file and return it as a pandas dataframe 
 def load_true_labels(true_labels_path):
     true_labels = []
