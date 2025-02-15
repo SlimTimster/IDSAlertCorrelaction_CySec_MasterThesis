@@ -30,37 +30,38 @@ log = logging.getLogger(__name__)
 
 
 #-------------------------------------- IrisClient Class --------------------------------------
-
+"""
+A wrapper class for IRIS API interactions that provides high-level functions
+for case management and related operations.
+"""
 class IrisClient:
-    """
-    A wrapper class for IRIS API interactions that provides high-level functions
-    for case management and related operations.
-    """
+
     def __init__(self, api_key: str, host : str = "https://localhost/", ssl_verify: bool = False):
         """Initialize the IRIS client with connection details."""
         self.session = ClientSession(apikey=api_key, host=host, ssl_verify=ssl_verify)
         self.case = Case(session=self.session)
-        
+
+    """
+    Check if a case with the given ID exists.
+    Returns True if the case exists, False otherwise.
+    """        
     def check_case_exists(self, case_id: int) -> bool:
-        """
-        Check if a case with the given ID exists.
-        Returns True if the case exists, False otherwise.
-        """
+
         try:
             return self.case.case_id_exists(case_id)
         except Exception as e:
             log.error(f"Error checking case existence: {e}")
             return False
-            
+        
+    """
+    Create a new case with the given parameters.
+    Returns the case ID if successful, None otherwise.
+    """           
     def create_case(self, name: str,
                     description: str, 
                     customer: str = "DefaultCustomer", 
                     classification: str = "other:other",
                     soc_id: str = "soc_1") -> Optional[int]:
-        """
-        Create a new case with the given parameters.
-        Returns the case ID if successful, None otherwise.
-        """
         try:
             status = self.case.add_case(
                 case_name=name,
@@ -77,15 +78,16 @@ class IrisClient:
             log.error(f"Error creating case: {e}")
             return None
             
+    """
+    Add an IOC to the specified case.
+    Returns the IOC ID if successful, None otherwise.
+    """
     def add_ioc_to_case(self, case_id: int,
                         value: str, 
                         ioc_type: str,
                         description: str = "",
                         ) -> Optional[int]:
-        """
-        Add an IOC to the specified case.
-        Returns the IOC ID if successful, None otherwise.
-        """
+
         try:
             self.case.set_cid(case_id)
             status = self.case.add_ioc(value=value, ioc_type=ioc_type, description=description)
@@ -95,7 +97,11 @@ class IrisClient:
         except Exception as e:
             log.error(f"Error adding IOC: {e}")
             return None
-            
+        
+    """
+    Add an asset to the specified case. 
+    Returns the asset ID if successful, None otherwise.
+    """           
     def add_asset_to_case(self, case_id: int,
                          name: str, 
                          asset_type: str, 
@@ -107,10 +113,7 @@ class IrisClient:
                          analysis_status: str = "Started",
                          tags: List[str] = [],
                          ioc_links : List[int] = []) -> Optional[int]:
-        """
-        Add an asset to the specified case. 
-        Returns the asset ID if successful, None otherwise.
-        """
+
         try:
             self.case.set_cid(case_id)
             status = self.case.add_asset(
@@ -132,6 +135,10 @@ class IrisClient:
             log.error(f"Error adding asset: {e}")
             return None
         
+    """
+    Add an event to the specified case.
+    Returns the event ID if successful, None otherwise.
+    """       
     def add_event_to_case(self, case_id: int,
                           title: str,
                           date_time: datetime,
@@ -145,10 +152,7 @@ class IrisClient:
                           display_in_graph: bool = True,
                           display_in_summary: bool = True,
                           ) -> Optional[int]:
-        """
-        Add an event to the specified case.
-        Returns the event ID if successful, None otherwise.
-        """
+
         try:
             self.case.set_cid(case_id)
             status = self.case.add_event(
@@ -170,6 +174,25 @@ class IrisClient:
         except Exception as e:
             log.error(f"Error adding event: {e}")
             return None
+        
+
+    """
+    Get the ID of a given IOC 
+    TODO: Describe what can be looked for in the IOC and add as parameters
+
+    """   
+    def check_ioc_exists(self, case_id: int):
+        try:
+            self.case.set_cid(case_id)
+            status = self.case.list_iocs()
+            assert_api_resp(status, soft_fail=False)
+            assert_data = get_data_from_resp(status)
+            print(assert_data)
+        
+        except Exception as e:
+            log.error(f"Error checking IOC existence: {e}")
+            return None
+
 
 
 #-------------------------------------- Example Code --------------------------------------
