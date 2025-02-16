@@ -178,22 +178,27 @@ class IrisClient:
 
     """
     Get the ID of a given IOC 
-    TODO: Describe what can be looked for in the IOC and add as parameters
-
+    Returns the IOC with the given value, if type is passed also matches the type.
+    Returns the ID of the IOC if it exists, None otherwise.
     """   
-    def check_ioc_exists(self, case_id: int):
+    def check_ioc_exists(self, case_id: int, ioc_value: str, ioc_type: str = None) -> Optional[int]:
         try:
             self.case.set_cid(case_id)
             status = self.case.list_iocs()
             assert_api_resp(status, soft_fail=False)
             assert_data = get_data_from_resp(status)
-            print(assert_data)
+            iocs = parse_api_data(assert_data, 'ioc')
+
+            for ioc in iocs:
+                if ioc['ioc_value'] == ioc_value and (ioc_type is None or ioc['ioc_type'] == ioc_type ):
+                    return ioc['ioc_id']
+
+            # NO matching IOC found
+            return None
         
         except Exception as e:
             log.error(f"Error checking IOC existence: {e}")
             return None
-
-
 
 #-------------------------------------- Example Code --------------------------------------
 
