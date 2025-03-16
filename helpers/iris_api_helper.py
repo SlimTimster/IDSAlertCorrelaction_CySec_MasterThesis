@@ -16,14 +16,14 @@ log = logging.getLogger(__name__)
 #-------------------------------------- Functions --------------------------------------
 
 # Overview of what functions are still TODO:
-# [] Create new case (can basically use case.add_case)
-# [] Upload key alerts (original notifications that triggered the investigation)
-# [] Add events to a case (can use case.add_event) - More detailed than alerts, establish the timeline
-# [] Create events from data extracted from the logs
-# [] Create IOC (Indicator of Compromise) from data extracted from the logs (can use case.add_ioc)
+# [x] Create new case (can basically use case.add_case)
+# [x] Upload key alerts (original notifications that triggered the investigation)
+# [x] Add events to a case (can use case.add_event) - More detailed than alerts, establish the timeline
+# [x] Create events from data extracted from the logs
+# [x] Create IOC (Indicator of Compromise) from data extracted from the logs (can use case.add_ioc)
 #  -> Domains, Filenames, IPs + Ports, malware hashes, backdoor-scripts used, directories, more internal IPs etc.
-# [] Create assets from data extracted from the logs (can use case.add_asset)
-#  -> [] Compromised user accounts
+# [x] Create assets from data extracted from the logs (can use case.add_asset)
+#  -> [x] Compromised user accounts
 #  -> [] Compromised computers / servers
 
 # [] Possible: Add Evidence (actual data) e.g. Network packet captures, Log files, Disk Images, Memory dumps 
